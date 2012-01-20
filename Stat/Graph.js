@@ -1,6 +1,7 @@
 Stat.Graph = function (id, sizeX, sizeY) {
 	log("Initialisation to: " + id);
 	this.id = id;
+	this.points = [];
 	this.canvas = $("#"+id);
 	this.ctx = this.canvas[0].getContext('2d');
 	this.size = {
@@ -45,13 +46,14 @@ Stat.Graph.prototype = {
 		log("Click!");
 		var x = Math.floor((e.pageX-this.canvas.offset().left));
 		var y = Math.floor((e.pageY-this.canvas.offset().top));
+		this.points.push({x: x, y: y});
 		this.drawPoint(x,y);
 	},
 	mousemove: function (e) {
 		var x = Math.floor((e.pageX-this.canvas.offset().left));
 		var y = Math.floor((e.pageY-this.canvas.offset().top));
 		var pos = this.scale.get(x,y);
-		log("("+pos.x+", "+pos.y+")");
+//		log("("+pos.x+", "+pos.y+")");
 	},
 	setCanvasSize: function (x,y) {
 		if (x,y) {
