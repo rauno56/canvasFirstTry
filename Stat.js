@@ -8,13 +8,13 @@ Stat.Graph = function (id, sizeX, sizeY) {
 	log("Initialisation to: " + id);
 	this.id = id;
 	this.canvas = $("#"+id);
+	this.ctx = this.canvas[0].getContext('2d');
 	
 	this.setCanvasSize(sizeX, sizeY);
 	
-	var me = this; 
-
+	var me = this;
+	
 	this.canvas.click(function (e) {
-		log(e.preventDefault);
 		e.preventDefault();
 		e.stopPropagation();
 		
@@ -33,14 +33,14 @@ Stat.Graph.prototype = {
 		sa = sa || 0;
 		ea = ea || Math.PI*2;
 		cc = cc || false;
-		console.log("Draw point.", this);
+		console.log("Draw point to ("+x+", "+y+")");
 		this.ctx.beginPath();
 		this.ctx.strokeStyle = "rgba(55,55,55, 10)";
 		this.ctx.arc(x,y,r,sa,ea,cc);
 		this.ctx.stroke();
 	},
 	click: function (e) {
-		log("Click!", x,y, this);
+		log("Click!");
 		var x = Math.floor((e.pageX-this.canvas.offset().left));
 		var y = Math.floor((e.pageY-this.canvas.offset().top));
 		this.drawPoint(x,y);
@@ -49,14 +49,8 @@ Stat.Graph.prototype = {
 		if (x,y) {
 			this.canvas[0].setAttribute('width', x);
 			this.canvas[0].setAttribute('height', y);
-			this.regenVars();
 		} else {
 			log("Default size.");
 		}
-	},
-	regenVars: function () {
-		log("Reseting context variables.");
-		var canvas = this.canvas = $("#"+this.id);
-		this.ctx = canvas[0].getContext('2d');
 	}
 };
