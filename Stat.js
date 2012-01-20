@@ -25,6 +25,10 @@ Stat.Graph = function (id, sizeX, sizeY) {
 		e.preventDefault();
 		e.stopPropagation();
 	});
+	
+	this.canvas.mousemove(function () {
+		me.mousemove.apply(me, arguments);
+	});
 };
 
 Stat.Graph.prototype = {
@@ -39,11 +43,22 @@ Stat.Graph.prototype = {
 		this.ctx.arc(x,y,r,sa,ea,cc);
 		this.ctx.stroke();
 	},
+	drawScale: function () {
+		
+	},
+	drawTick: function () {
+		
+	},
 	click: function (e) {
 		log("Click!");
 		var x = Math.floor((e.pageX-this.canvas.offset().left));
 		var y = Math.floor((e.pageY-this.canvas.offset().top));
 		this.drawPoint(x,y);
+	},
+	mousemove: function (e) {
+		var x = Math.floor((e.pageX-this.canvas.offset().left));
+		var y = Math.floor((e.pageY-this.canvas.offset().top));
+//		log("("+x+", "+y+")");
 	},
 	setCanvasSize: function (x,y) {
 		if (x,y) {
