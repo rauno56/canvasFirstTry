@@ -9,6 +9,8 @@ Stat.Scale = function (graph,x,y) {
 	
 	this.xOffset = x;
 	this.yOffset = y;
+	
+	this.draw();
 };
 
 Stat.Scale.prototype = {
@@ -18,10 +20,19 @@ Stat.Scale.prototype = {
 			y: this.yOffset - y
 		};
 	},
-	drawScale: function () {
-		context.moveTo(100, 150);
-	    context.lineTo(450, 50);
-	    context.stroke();
+	draw: function () {
+		var ct = this.graph.ctx;
+		ct.lineWidth = 1;
+		ct.strokeStyle = "rgb(55,55,55)";
+		
+		ct.moveTo(0, this.yOffset-0.5);
+		ct.lineTo(this.graph.size.x, this.yOffset-0.5);
+
+		ct.moveTo(this.xOffset-0.5, 0);
+		ct.lineTo(this.xOffset-0.5, this.graph.size.x+0.5);
+	    
+		
+		ct.stroke();
 	},
 	drawTick: function () {
 		
