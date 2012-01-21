@@ -1,7 +1,6 @@
 Stat.Graph = function (id, sizeX, sizeY) {
 	log("Initialisation to: " + id);
 	this.id = id;
-	this.points = [];
 	this.canvas = $("#"+id);
 	this.ctx = this.canvas[0].getContext('2d');
 	this.size = {
@@ -32,6 +31,7 @@ Stat.Graph = function (id, sizeX, sizeY) {
 
 Stat.Graph.prototype = {
 	step: 1,
+	points: [],
 	drawPoint: function (x,y,r,sa,ea,cc) {
 		r = r || 2;
 		sa = sa || 0;
@@ -39,6 +39,7 @@ Stat.Graph.prototype = {
 		cc = cc || false;
 		console.log("Draw point to ("+x+", "+y+")");
 		this.ctx.beginPath();
+		this.ctx.lineWidth = 1;
 		this.ctx.strokeStyle = "rgba(55,55,55, 10)";
 		this.ctx.arc(x,y,r,sa,ea,cc);
 		this.ctx.stroke();
@@ -72,8 +73,8 @@ Stat.Graph.prototype = {
 	    	context = this.ctx,
 	    	step = this.step,
 	    	scale = this.scale;
-	    color = "black";
-	    thickness = 2
+	    color = color || "black";
+	    thickness = thickness || 2;
 	 
 	    context.beginPath();
 	    context.moveTo(0, scale.get(0, equation(scale.get(0,0).x)).y);
@@ -82,7 +83,7 @@ Stat.Graph.prototype = {
 	    	scaleX = scale.get(x,0).x;
 	    	scaleY = equation(scaleX);
 	    	graphY = scale.get(0,scaleY).y;
-	    	console.log("("+scaleX+", "+graphY+")");
+//	    	console.log("("+scaleX+", "+graphY+")");
 	        context.lineTo(x, graphY);
 	    }
 	    
@@ -90,5 +91,18 @@ Stat.Graph.prototype = {
 	    context.lineWidth = thickness;
 	    context.strokeStyle = color;
 	    context.stroke();
-	}
+	},
+	clearEquations: function () {
+		console.log(this.points);
+		this.ctx.clearRect(0,0,this.size.x, this.size.y);
+		this.scale.draw();
+		var me = this;
+		this.points.forEach(function (p) {
+			me.drawPoint(p.x,p.y);
+		});
+	},
+	clear: function () {
+		this.points = [];
+		this.clearEquations();
+	},
 };

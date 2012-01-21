@@ -25,6 +25,8 @@ Stat.Scale.prototype = {
 		ct.lineWidth = 1;
 		ct.strokeStyle = "rgb(55,55,55)";
 		
+		ct.beginPath();
+		
 		ct.moveTo(0, this.yOffset-0.5);
 		ct.lineTo(this.graph.size.x, this.yOffset-0.5);
 
