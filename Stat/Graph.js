@@ -1,18 +1,16 @@
-Stat.Graph = function (id, sizeX, sizeY) {
+Stat.Graph = function (id, options) {
 	log("Initialisation to: " + id);
+	options = options || {};
+	
 	this.id = id;
 	this.canvas = $("#"+id);
 	this.cont = this.canvas[0].getContext('2d');
-	this.size = {
-		x: sizeX,
-		y: sizeY
-	};
-		
-	this.setCanvasSize(sizeX, sizeY);
 	
-//	this.cont.translate(100,100);
+	this.setCanvasSize(options);
 	
-	this.scale = new Stat.Scale(this, 10, this.size.y-10);
+	this.setTranslation(options);
+	
+	this.scale = new Stat.Scale(this);
 	
 	var me = this;
 	
@@ -36,6 +34,20 @@ Stat.Graph = function (id, sizeX, sizeY) {
 Stat.Graph.prototype = {
 	step: 1,
 	points: [],
+	width: 300,
+	height: 150,
+	min: {
+		x: undefined,
+		y: undefined
+	},
+	max: {
+		x: undefined,
+		y: undefined
+	},
+	center: {
+		x: undefined,
+		y: undefined
+	},
 	drawPoint: function (x,y,r,sa,ea,cc) {
 		r = r || 2;
 		sa = sa || 0;
@@ -50,8 +62,8 @@ Stat.Graph.prototype = {
 	},
 	click: function (e) {
 		log("Click!");
-		var x = Math.floor((e.pageX-this.canvas.offset().left));
-		var y = Math.floor((e.pageY-this.canvas.offset().top));
+		var x = Math.floor((e.pageX-this.canvas.offset().left)) + this.min.x;
+		var y = -Math.floor((e.pageY-this.canvas.offset().top)) + this.center.y;
 		this.points.push({x: x, y: y});
 		this.drawPoint(x,y);
 	},
@@ -61,13 +73,28 @@ Stat.Graph.prototype = {
 		var pos = this.scale.get(x,y);
 //		log("("+pos.x+", "+pos.y+")");
 	},
-	setCanvasSize: function (x,y) {
-		if (x,y) {
-			this.canvas[0].setAttribute('width', x);
-			this.canvas[0].setAttribute('height', y);
-		} else {
-			log("Default size.");
-		}
+	setCanvasSize: function (options) {
+		var x = options.width || this.width,
+			y = options.height || this.height;
+		this.canvas[0].setAttribute('width', x);
+		this.canvas[0].setAttribute('height', y);
+		
+		this.width = x;
+		this.height = y;
+	},
+	setTranslation: function (options) {
+		var x = this.center.x = options.centerX || Math.round(this.width / 2),
+			y = this.center.y = options.centerY || Math.round(this.height / 2);
+		
+		this.cont.translate(x,y);
+		
+		this.cont.scale(1, -1);
+		
+		var minX = this.min.x = -x;
+		var minY = this.min.y = -(-y + this.height);
+		
+		this.max.x = minX + this.width;
+		this.max.y = y;
 	},
 	drawEquation: function(equation, color, thickness) {
 		console.log(equation, equation(10));
@@ -75,29 +102,28 @@ Stat.Graph.prototype = {
 	    var canvas = this.canvas,
 	    	context = this.cont,
 	    	step = this.step,
-	    	scale = this.scale;
+	    	min = this.min.x,
+	    	max = this.max.x;
 	    color = color || "black";
 	    thickness = thickness || 2;
 	 
 	    context.beginPath();
-	    context.moveTo(0, scale.get(0, equation(scale.get(0,0).x)).y);
-	 
-	    for (var x = step; x <= this.size.x; x += step) {
-	    	scaleX = scale.get(x,0).x;
-	    	scaleY = equation(scaleX);
-	    	graphY = scale.get(0,scaleY).y;
-//	    	console.log("("+scaleX+", "+graphY+")");
-	        context.lineTo(x, graphY);
-	    }
 	    
 	    context.lineJoin = "round";
 	    context.lineWidth = thickness;
 	    context.strokeStyle = color;
+	    
+	    context.moveTo(min, equation(min));
+	 
+	    for (var x = min + step; x <= max; x += step) {
+	        context.lineTo(x, equation(x));
+	    }
+	    
 	    context.stroke();
 	},
 	clearEquations: function () {
 		console.log(this.points);
-		this.cont.clearRect(0,0,this.size.x, this.size.y);
+		this.cont.clearRect(this.min.x, this.min.y, this.width, this.height);
 		this.scale.draw();
 		var me = this;
 		this.points.forEach(function (p) {
