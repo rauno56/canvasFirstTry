@@ -31,6 +31,7 @@ Stat.Graph = function (id, sizeX, sizeY) {
 };
 
 Stat.Graph.prototype = {
+	step: 1,
 	drawPoint: function (x,y,r,sa,ea,cc) {
 		r = r || 2;
 		sa = sa || 0;
@@ -64,4 +65,30 @@ Stat.Graph.prototype = {
 		}
 		this.scale = new Stat.Scale(this, 10, this.size.y-10);
 	},
+	drawEquation: function(equation, color, thickness) {
+		console.log(equation, equation(10));
+		
+	    var canvas = this.canvas,
+	    	context = this.ctx,
+	    	step = this.step,
+	    	scale = this.scale;
+	    color = "black";
+	    thickness = 2
+	 
+	    context.beginPath();
+	    context.moveTo(0, scale.get(0, equation(scale.get(0,0).x)).y);
+	 
+	    for (var x = step; x <= this.size.x; x += step) {
+	    	scaleX = scale.get(x,0).x;
+	    	scaleY = equation(scaleX);
+	    	graphY = scale.get(0,scaleY).y;
+	    	console.log("("+scaleX+", "+graphY+")");
+	        context.lineTo(x, graphY);
+	    }
+	    
+	    context.lineJoin = "round";
+	    context.lineWidth = thickness;
+	    context.strokeStyle = color;
+	    context.stroke();
+	}
 };
