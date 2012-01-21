@@ -8,6 +8,8 @@ Stat.Graph = function (id, options) {
 	
 	this.setCanvasSize(options);
 	
+	this.cont.save();
+	
 	this.setTranslation(options);
 	
 	this.scale = new Stat.Scale(this);
@@ -34,6 +36,7 @@ Stat.Graph = function (id, options) {
 Stat.Graph.prototype = {
 	step: 1,
 	points: [],
+	equations: [],
 	width: 300,
 	height: 150,
 	min: {
@@ -48,29 +51,15 @@ Stat.Graph.prototype = {
 		x: undefined,
 		y: undefined
 	},
-	drawPoint: function (x,y,r,sa,ea,cc) {
-		r = r || 2;
-		sa = sa || 0;
-		ea = ea || Math.PI*2;
-		cc = cc || false;
-		console.log("Draw point to ("+x+", "+y+")");
-		this.cont.beginPath();
-		this.cont.lineWidth = 1;
-		this.cont.strokeStyle = "rgba(55,55,55, 10)";
-		this.cont.arc(x,y,r,sa,ea,cc);
-		this.cont.stroke();
-	},
 	click: function (e) {
-		log("Click!");
 		var x = Math.floor((e.pageX-this.canvas.offset().left)) + this.min.x;
 		var y = -Math.floor((e.pageY-this.canvas.offset().top)) + this.center.y;
-		this.points.push({x: x, y: y});
-		this.drawPoint(x,y);
+		this.addPoint(x, y);
 	},
 	mousemove: function (e) {
-		var x = Math.floor((e.pageX-this.canvas.offset().left));
-		var y = Math.floor((e.pageY-this.canvas.offset().top));
-		var pos = this.scale.get(x,y);
+		var x = Math.floor((e.pageX-this.canvas.offset().left)) + this.min.x;
+		var y = -Math.floor((e.pageY-this.canvas.offset().top)) + this.center.y;
+//		var pos = this.scale.get(x,y);
 //		log("("+pos.x+", "+pos.y+")");
 	},
 	setCanvasSize: function (options) {
@@ -82,9 +71,15 @@ Stat.Graph.prototype = {
 		this.width = x;
 		this.height = y;
 	},
-	setTranslation: function (options) {
-		var x = this.center.x = options.centerX || Math.round(this.width / 2),
-			y = this.center.y = options.centerY || Math.round(this.height / 2);
+	setTranslation: function (x,y) {
+		if (typeof(x)==typeof({})) {
+			y = x.centerY;
+			x = x.centerX;
+		}
+		this.cont.restore();
+		this.cont.save();
+		var x = this.center.x = x || Math.round(this.width / 2),
+			y = this.center.y = y || Math.round(this.height / 2);
 		
 		this.cont.translate(x,y);
 		
@@ -96,9 +91,33 @@ Stat.Graph.prototype = {
 		this.max.x = minX + this.width;
 		this.max.y = y;
 	},
-	drawEquation: function(equation, color, thickness) {
-		console.log(equation, equation(10));
+	addPoint: function (x, y) {
+		x-=0.5;
+		y+=0.5;
+		this.points.push({x: x, y: y});
+		this.drawPoint(x,y);
+	},
+	drawPoint: function (x,y,r,sa,ea,cc) {
+		r = r || 2;
+		sa = sa || 0;
+		ea = ea || Math.PI*2;
+		cc = cc || false;
+		this.cont.beginPath();
+		this.cont.lineWidth = 1;
+		this.cont.strokeStyle = "rgba(55,55,55, 10)";
+		this.cont.arc(x,y,r,sa,ea,cc);
+		this.cont.stroke();
+	},
+	addEquation: function (equation, color, thickness) {
+		this.equations.push({
+	    	formula: equation,
+	    	color: color,
+	    	thickness: thickness
+	    });
 		
+		this.drawEquation(equation, color, thickness);
+	},
+	drawEquation: function (equation, color, thickness) {		
 	    var canvas = this.canvas,
 	    	context = this.cont,
 	    	step = this.step,
@@ -121,17 +140,38 @@ Stat.Graph.prototype = {
 	    
 	    context.stroke();
 	},
-	clearEquations: function () {
-		console.log(this.points);
-		this.cont.clearRect(this.min.x, this.min.y, this.width, this.height);
+	translate: function (x,y) {
+		this.erase();
+		
+		this.setTranslation(x,y);
+		
+		this.reDraw();
+	},
+	reDraw: function () {
+		this.erase();
+		
 		this.scale.draw();
+		this.reDrawPoints();
+		this.reDrawEquations();
+	},
+	reDrawPoints: function () {
 		var me = this;
 		this.points.forEach(function (p) {
 			me.drawPoint(p.x,p.y);
 		});
 	},
+	reDrawEquations: function () {
+		var me = this;
+		this.equations.forEach(function (e) {
+			me.drawEquation(e.formula, e.color, e.thickness);
+		});
+	},
+	erase: function () {
+		this.cont.clearRect(this.min.x, this.min.y, this.width, this.height);	
+	},
 	clear: function () {
 		this.points = [];
-		this.clearEquations();
-	},
+		this.equations = [];
+		this.reDraw();
+	}
 };

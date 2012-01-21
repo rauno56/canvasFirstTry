@@ -9,16 +9,10 @@ Stat.Scale = function (graph,x,y) {
 };
 
 Stat.Scale.prototype = {
-	get: function (x,y) {
-		return {
-			x: x - this.xOffset,
-			y: this.yOffset - y
-		};
-	},
 	draw: function () {
 		var cont = this.graph.cont;
 		cont.lineWidth = 1;
-		cont.strokeStyle = "rgb(55,55,55)";
+		cont.strokeStyle = "rgb(155,155,155)";
 		
 		cont.beginPath();
 		
@@ -28,7 +22,6 @@ Stat.Scale.prototype = {
 		cont.moveTo(-0.5, this.graph.min.y);
 		cont.lineTo(-0.5, this.graph.max.y);
 	    
-		
 		cont.stroke();
 	},
 	drawTick: function () {
