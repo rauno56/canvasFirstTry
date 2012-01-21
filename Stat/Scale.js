@@ -21,20 +21,29 @@ Stat.Scale.prototype = {
 		};
 	},
 	draw: function () {
-		var ct = this.graph.ctx;
-		ct.lineWidth = 1;
-		ct.strokeStyle = "rgb(55,55,55)";
-		
-		ct.beginPath();
-		
-		ct.moveTo(0, this.yOffset-0.5);
-		ct.lineTo(this.graph.size.x, this.yOffset-0.5);
+		var cont = this.graph.cont;
+		cont.lineWidth = 1;
+		cont.strokeStyle = "rgb(55,55,55)";
 
-		ct.moveTo(this.xOffset-0.5, 0);
-		ct.lineTo(this.xOffset-0.5, this.graph.size.x+0.5);
+		
+		
+		
+		cont.beginPath();
+		
+//		cont.moveTo(0, this.yOffset-0.5);
+//		cont.lineTo(this.graph.size.x, this.yOffset-0.5);
+//
+//		cont.moveTo(this.xOffset-0.5, 0);
+//		cont.lineTo(this.xOffset-0.5, this.graph.size.x);
+		
+		cont.moveTo(-this.graph.size.x, -0.5);
+		cont.lineTo(this.graph.size.x, -0.5);
+
+		cont.moveTo(-0.5, -this.graph.size.y);
+		cont.lineTo(-0.5, this.graph.size.y);
 	    
 		
-		ct.stroke();
+		cont.stroke();
 	},
 	drawTick: function () {
 		
