@@ -10,7 +10,7 @@ Stat.Graph = function (id, options) {
 	
 	this.cont.save();
 	
-	this.setTranslation(options);
+	this.initTranslation(options);
 	
 	this.scale = new Stat.Scale(this);
 	
@@ -51,6 +51,7 @@ Stat.Graph.prototype = {
 		x: undefined,
 		y: undefined
 	},
+	
 	click: function (e) {
 		var x = Math.floor((e.pageX-this.canvas.offset().left)) + this.min.x;
 		var y = -Math.floor((e.pageY-this.canvas.offset().top)) + this.center.y;
@@ -71,7 +72,7 @@ Stat.Graph.prototype = {
 		this.width = x;
 		this.height = y;
 	},
-	setTranslation: function (x,y) {
+	initTranslation: function (x,y) {
 		if (typeof(x)==typeof({})) {
 			y = x.centerY;
 			x = x.centerX;
@@ -92,58 +93,15 @@ Stat.Graph.prototype = {
 		this.max.y = y;
 	},
 	addPoint: function (x, y) {
-		x-=0.5;
-		y+=0.5;
-		this.points.push({x: x, y: y});
-		this.drawPoint(x,y);
+		this.points.push(new Stat.Point(this, x, y));
 	},
-	drawPoint: function (x,y,r,sa,ea,cc) {
-		r = r || 2;
-		sa = sa || 0;
-		ea = ea || Math.PI*2;
-		cc = cc || false;
-		this.cont.beginPath();
-		this.cont.lineWidth = 1;
-		this.cont.strokeStyle = "rgba(55,55,55, 10)";
-		this.cont.arc(x,y,r,sa,ea,cc);
-		this.cont.stroke();
+	addEquation: function (formula, color, thickness) {
+		this.equations.push(new Stat.Equation(this, formula, color, thickness));
 	},
-	addEquation: function (equation, color, thickness) {
-		this.equations.push({
-	    	formula: equation,
-	    	color: color,
-	    	thickness: thickness
-	    });
-		
-		this.drawEquation(equation, color, thickness);
-	},
-	drawEquation: function (equation, color, thickness) {		
-	    var canvas = this.canvas,
-	    	context = this.cont,
-	    	step = this.step,
-	    	min = this.min.x,
-	    	max = this.max.x;
-	    color = color || "black";
-	    thickness = thickness || 2;
-	 
-	    context.beginPath();
-	    
-	    context.lineJoin = "round";
-	    context.lineWidth = thickness;
-	    context.strokeStyle = color;
-	    
-	    context.moveTo(min, equation(min));
-	 
-	    for (var x = min + step; x <= max; x += step) {
-	        context.lineTo(x, equation(x));
-	    }
-	    
-	    context.stroke();
-	},
-	translate: function (x,y) {
+	setTranslation: function (x,y) {
 		this.erase();
 		
-		this.setTranslation(x,y);
+		this.initTranslation(x,y);
 		
 		this.reDraw();
 	},
@@ -155,15 +113,13 @@ Stat.Graph.prototype = {
 		this.reDrawEquations();
 	},
 	reDrawPoints: function () {
-		var me = this;
 		this.points.forEach(function (p) {
-			me.drawPoint(p.x,p.y);
+			p.draw();
 		});
 	},
 	reDrawEquations: function () {
-		var me = this;
 		this.equations.forEach(function (e) {
-			me.drawEquation(e.formula, e.color, e.thickness);
+			e.draw();;
 		});
 	},
 	erase: function () {
