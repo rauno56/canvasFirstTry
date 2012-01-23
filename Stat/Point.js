@@ -1,12 +1,12 @@
 Stat.Point = function (graph, x, y) {
-	if (!x || !y) {
+	if (x == null || y == null) {
 		throw new Error("Point has to have coordinates.");
 	}
 	if (!graph) {
 		throw new Error("Point has to have Graph assigned to it.");
 	}
 	this.x = x-0.5;
-	this.y = y+0.5;
+	this.y = y-0.5;
 	this.graph = graph;
 	
 	this.draw();
