@@ -21,12 +21,13 @@ Stat.Equation.prototype = {
 	draw: function (color, thickness) {		
 		var graph = this.graph,
 			context = graph.cont,
-			step = graph.step,
+			zoom = graph.zoom,
+			step = graph.step/zoom,
 			min = graph.min.x,
 			max = graph.max.x,
 			formula = this.formula;
 		color = color || this.color || "black";
-		thickness = thickness || this.thickness || 2;
+		thickness = (thickness || this.thickness || 2)/zoom;
 
 		context.beginPath();
 

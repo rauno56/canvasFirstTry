@@ -3,8 +3,8 @@ Stat.Graph = function (id, options) {
 	options = options || {};
 	
 	this.id = id;
-	this.canvas = $("#"+id);
-	this.cont = this.canvas[0].getContext('2d');
+	var canvas = this.canvas = $("#"+id);
+	this.cont = canvas[0].getContext('2d');
 	
 	this.setCanvasSize(options);
 	
@@ -16,21 +16,25 @@ Stat.Graph = function (id, options) {
 	
 	var me = this;
 	
-	this.canvas.click(function (e) {
+	canvas.click(function (e) {
 		e.preventDefault();
 		e.stopPropagation();
 		
 		me.click.apply(me, arguments);
 	});
 	
-	this.canvas.dblclick(function (e) {
+	canvas.dblclick(function (e) {
 		e.preventDefault();
 		e.stopPropagation();
 	});
 	
-	this.canvas.mousemove(function () {
-		me.mousemove.apply(me, arguments);
-	});
+//	canvas.bind("mousedown", me, me.startDrag);
+//    canvas.bind("mousemove", me, me.drag);
+//    canvas.bind("mouseup", me, me.endDrag);
+//    canvas.bind("mouseover", me, me.endDrag);
+//    canvas.bind("mouseout", me, me.endDrag);
+	
+	this.addEquation(function (x) { return Math.sin(x); }, "grey", 1);
 };
 
 Stat.Graph.prototype = {
@@ -39,53 +43,76 @@ Stat.Graph.prototype = {
 	equations: [],
 	width: 300,
 	height: 150,
+	zoom: 50,
 	min: {x: undefined, y: undefined},
 	max: {x: undefined, y: undefined},
 	center: {x: undefined, y: undefined},
+	startDragOffset: {x: undefined, y: undefined},
 	getMousePosition: function (e) {
-		var x = Math.floor((e.pageX-this.canvas.offset().left)) + this.min.x;
-		var y = -Math.floor((e.pageY-this.canvas.offset().top)) + 1 + this.center.y;
+		var x = ((e.pageX-this.canvas.offset().left))/this.zoom + this.min.x;
+		var y = (-(e.pageY-this.canvas.offset().top) + 1 + this.center.y)/this.zoom;
 		return [x,y];
 	},
+	startDrag: function (e) {
+        var me = e.data;
+        me.mouseDown = true;
+        me.startDragOffset.x = e.clientX - me.center.x;
+        me.startDragOffset.y = e.clientY - me.center.y;
+    },
+    endDrag: function (e) {
+        e.data.mouseDown = false;
+    },
+    drag: function (e) {
+    	var me = e.data;
+        if (me.mouseDown) {
+        	log("You dragger");
+            x = e.clientX - me.startDragOffset.x;
+            y = e.clientY - me.startDragOffset.y;
+            me.setTranslation(x, y);
+        }
+    },
 	click: function (e) {
-		this.addPoint.apply(this, this.getMousePosition(e));
+		var p = this.getMousePosition(e);
+		this.addPoint.apply(this, p);
+		this.reDraw();
 	},
-	mousemove: function (e) {
-//		var pos = this.scale.get(x,y);
-//		log("("+pos.x+", "+pos.y+")");
-	},
-	setCanvasSize: function (options) {
-		var x = options.width || this.width,
-			y = options.height || this.height;
+	setCanvasSize: function (x,y ) {
+		if (x && typeof(x)==typeof({a: 1})) {
+			y = x.height;
+			x = x.width;
+		}
+		x = this.width = x || this.width;
+		y = this.height = y || this.height;
 		this.canvas[0].setAttribute('width', x);
 		this.canvas[0].setAttribute('height', y);
-		
-		this.width = x;
-		this.height = y;
 	},
 	initTranslation: function (x,y) {
-		if (typeof(x)==typeof({})) {
+		if (x && typeof(x)==typeof({})) {
 			y = x.centerY;
 			x = x.centerX;
 		}
+		
 		this.cont.restore();
 		this.cont.save();
-		var x = this.center.x = x || Math.round(this.width / 2),
-			y = this.center.y = y || Math.round(this.height / 2);
+		
+		var x = this.center.x = x || this.center.x || Math.round(this.width / 2),
+			y = this.center.y = y || this.center.y || Math.round(this.height / 2),
+			zoom = this.zoom;
 		
 		this.cont.translate(x,y);
 		
-		this.cont.scale(1, -1);
+		this.cont.scale(zoom, -zoom);
 		
-		var minX = this.min.x = -x;
-		var minY = this.min.y = -(-y + this.height);
+		var minX = this.min.x = -x/zoom;
+		var minY = this.min.y = -(-y + this.height)/zoom;
 		
-		this.max.x = minX + this.width;
-		this.max.y = y;
+		this.max.x = (this.width)/zoom + minX;
+		this.max.y = (y)/zoom;
 	},
 	addPoint: function (x, y) {
-		this.points.push(new Stat.Point(this, x, y));
-		this.reDraw();
+		var p = new Stat.Point(this, x, y);
+		this.points.push(p);
+		return p
 	},
 	addEquation: function (formula, color, thickness) {
 		this.equations.push(new Stat.Equation(this, formula, color, thickness));
@@ -97,17 +124,21 @@ Stat.Graph.prototype = {
 		
 		this.reDraw();
 	},
+	setZoom: function (z) {
+		log("Setting zoom to", z);
+		this.erase();
+		
+		this.zoom = z || this.zoom;
+		this.initTranslation();
+		
+		this.reDraw();
+	},
 	reDraw: function () {
 		this.erase();
 		
 		this.scale.draw();
 		this.reDrawPoints();
 		this.reDrawEquations();
-	},
-	reDrawDynamics: function () {
-		this.dynamicEquations.forEach(function (e) {
-			e.draw();;
-		});
 	},
 	reDrawPoints: function () {
 		this.points.forEach(function (p) {
@@ -141,6 +172,7 @@ U = function (a,b) {
 	var ba = b-a;
 	return function (x) {
 		if (a<=x && x<=b) {
+			log(x,1/(ba));
 			return 1/(ba);
 		}
 		return 0; 
@@ -181,30 +213,13 @@ kernelDensity = function (points, kernelFunction, h) {
 		g.points.forEach(function (p) {
 			sum+=kernelFunction((x-p.x)/h);
 		});
-		return 10000 * sum/(n*h)
+		return sum/(n*h)
 	};
 };
 
-
-//Ns = [
-//   N(0,1),
-//   N2(0,1),
-//   N3(0,1),
-//   N4(0,1),
-//   N5(0,1)
-//];
-//
-//count = 10;
-//
-//while (count--) {
-//	x = (Math.random()-0.5)*16;
-//	console.log("Testcase:", x);
-//	a = Ns[0](x);
-//	console.log("Originaal:",a);
-//	for (var i = 1; i<Ns.length; i++) {
-//		var v = Ns[i](x);
-//		console.log(i, ": ", v, '  - test: ', a-v);
-//	}
-//}
-
-
+addLimits = function (g,offset) {
+	g.addPoint(g.max.x/offset,0);
+	g.addPoint(g.min.x/offset,0);
+	g.addPoint(0,g.min.y/offset);
+	g.addPoint(0,g.max.y/offset);
+}
