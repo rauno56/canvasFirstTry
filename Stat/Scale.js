@@ -37,7 +37,7 @@ Stat.Scale.prototype = {
 		cont.beginPath();
 		
 		cont.lineWidth = 1/(zoom*2);
-		cont.strokeStyle = "rgba(76, 111, 240, 0.3)";
+		cont.strokeStyle = "hsla(119, 100%, 28%, 0.3);";
 		
 		var x = step;
 		while (x<max.x) {
@@ -73,7 +73,6 @@ Stat.Scale.prototype = {
 	find: function () {
 		var g = this.graph;
 		var s = Math.max(g.width, g.height)/50;
-//		console.log(g.width, g.height);
 		var x = g.max.x-g.min.x;
 		var y = g.max.y-g.min.y;
 		var longest = Math.max(x, y);

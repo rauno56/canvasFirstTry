@@ -1,5 +1,8 @@
+var erases = 0;
+var redraws = 0; 
+
 Stat.Graph = function (id, options) {
-	log("Initialisation to: " + id);
+	console.log("Initialisation to: " + id);
 	options = options || {};
 	
 	this.id = id;
@@ -34,7 +37,7 @@ Stat.Graph = function (id, options) {
 //    canvas.bind("mouseover", me, me.endDrag);
 //    canvas.bind("mouseout", me, me.endDrag);
 	
-	this.addEquation(function (x) { return Math.sin(x); }, "grey", 1);
+//	this.addEquation(function (x) { return Math.sin(x); }, "grey", 1);
 };
 
 Stat.Graph.prototype = {
@@ -115,7 +118,9 @@ Stat.Graph.prototype = {
 		return p
 	},
 	addEquation: function (formula, color, thickness) {
-		this.equations.push(new Stat.Equation(this, formula, color, thickness));
+		var e = new Stat.Equation(this, formula, color, thickness);
+		this.equations.push(e);
+		return e;
 	},
 	setTranslation: function (x,y) {
 		this.erase();
@@ -125,7 +130,6 @@ Stat.Graph.prototype = {
 		this.reDraw();
 	},
 	setZoom: function (z) {
-		log("Setting zoom to", z);
 		this.erase();
 		
 		this.zoom = z || this.zoom;
@@ -135,6 +139,9 @@ Stat.Graph.prototype = {
 	},
 	reDraw: function () {
 		this.erase();
+		
+//		console.log("Redrawing.");
+		redraws++;
 		
 		this.scale.draw();
 		this.reDrawPoints();
@@ -147,10 +154,12 @@ Stat.Graph.prototype = {
 	},
 	reDrawEquations: function () {
 		this.equations.forEach(function (e) {
-			e.draw();;
+			e.draw();
 		});
 	},
 	erase: function () {
+//		console.log("Erasing.");
+		erases++;
 		this.cont.clearRect(this.min.x, this.min.y, this.width, this.height);	
 	},
 	clear: function () {
@@ -172,7 +181,6 @@ U = function (a,b) {
 	var ba = b-a;
 	return function (x) {
 		if (a<=x && x<=b) {
-			log(x,1/(ba));
 			return 1/(ba);
 		}
 		return 0; 
@@ -216,10 +224,3 @@ kernelDensity = function (points, kernelFunction, h) {
 		return sum/(n*h)
 	};
 };
-
-addLimits = function (g,offset) {
-	g.addPoint(g.max.x/offset,0);
-	g.addPoint(g.min.x/offset,0);
-	g.addPoint(0,g.min.y/offset);
-	g.addPoint(0,g.max.y/offset);
-}
